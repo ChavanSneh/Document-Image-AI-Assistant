@@ -11,7 +11,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 # --- THE KEY BYPASS ---
 # Use .split() and .join() to ensure no hidden characters ruin the key
-raw_key = "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"
+raw_key = ""
 os.environ["OPENROUTER_API_KEY"] = "".join(raw_key.split())
 
 # 1. Page Config
