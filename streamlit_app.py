@@ -1,5 +1,12 @@
 import streamlit as st
 import os
+# --- THE MISSING SECURITY FIX ---
+if "OPENROUTER_API_KEY" in st.secrets:
+    # This grabs the key from your secrets.toml and puts it in memory
+    os.environ["OPENROUTER_API_KEY"] = st.secrets["OPENROUTER_API_KEY"]
+else:
+    st.error("🔑 API Key not found! Check your .streamlit/secrets.toml file.")
+    st.stop()
 import pytesseract
 from PIL import Image
 import pdfplumber
@@ -9,10 +16,6 @@ from docx import Document
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
-# --- THE KEY BYPASS ---
-# Use .split() and .join() to ensure no hidden characters ruin the key
-raw_key = "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"
-os.environ["OPENROUTER_API_KEY"] = "".join(raw_key.split())
 
 # 1. Page Config
 st.set_page_config(page_title="Gemini Multi-Tool 2026", page_icon="🛡️")
@@ -21,15 +24,16 @@ st.caption("OCR + Memory + 3-Model Fallback Protection")
 
 # 2. Setup the AI Engine (With Fallback Logic)
 # We use a primary model and 2 backups to handle individual model outages.
+# The "Auto-Pilot" Setup
 llm = ChatOpenAI(
-    model="google/gemini-2.0-flash-exp:free", 
-    openai_api_key=os.getenv("OPENROUTER_API_KEY"),
+    model="google/gemini-2.0-flash-exp:free", # Primary target
+    openai_api_key=os.environ["OPENROUTER_API_KEY"],
     openai_api_base="https://openrouter.ai/api/v1",
     extra_body={
         "models": [
-            "google/gemini-2.0-flash-exp:free",      # Priority 1
-            "meta-llama/llama-3.1-8b-instruct:free",   # Priority 2
-            "mistralai/mistral-7b-instruct:free"     # Priority 3 (Limit of 3 reached)
+            "google/gemini-2.0-flash-exp:free",
+            "meta-llama/llama-3.1-8b-instruct:free",
+            "mistralai/mistral-7b-instruct:free"
         ],
         "route": "fallback"
     }
