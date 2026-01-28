@@ -1,116 +1,110 @@
 import streamlit as st
 import os
-# --- THE MISSING SECURITY FIX ---
-if "OPENROUTER_API_KEY" in st.secrets:
-    # This grabs the key from your secrets.toml and puts it in memory
+
+# --- 1. SECURITY & API CONFIG ---
+# This looks for BOTH keys in your .streamlit/secrets.toml
+if "OPENROUTER_API_KEY" in st.secrets and "GROQ_API_KEY" in st.secrets:
     os.environ["OPENROUTER_API_KEY"] = st.secrets["OPENROUTER_API_KEY"]
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 else:
-    st.error("🔑 API Key not found! Check your .streamlit/secrets.toml file.")
+    st.error("🔑 API Keys not found! Ensure BOTH 'OPENROUTER_API_KEY' and 'GROQ_API_KEY' are in your secrets.toml.")
     st.stop()
+
+# --- 2. IMPORTS (Correctly Aligned to Left Wall) ---
 import pytesseract
 from PIL import Image
 import pdfplumber
 from docx import Document
-
-# 2026 Modular LangChain Imports
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_groq import ChatGroq
+from langchain_core.messages import HumanMessage
 
+# --- 3. PAGE CONFIGURATION ---
+st.set_page_config(page_title="Resilient Hybrid AI", page_icon="⚡", layout="wide")
+st.title("⚡ Resilient Hybrid AI Assistant")
+st.markdown("OCR + PDF Analysis | Gemini (Stable) & Groq (Lightning Fast)")
 
-# 1. Page Config
-st.set_page_config(page_title="Gemini Multi-Tool 2026", page_icon="🛡️")
-st.title("🛡️ Resilient AI Assistant")
-st.caption("OCR + Memory + 3-Model Fallback Protection")
+# --- 4. INITIALIZE SESSION STATES ---
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "extracted_text" not in st.session_state:
+    st.session_state.extracted_text = ""
 
-# 2. Setup the AI Engine (With Fallback Logic)
-# We use a primary model and 2 backups to handle individual model outages.
-# The "Auto-Pilot" Setup
-llm = ChatOpenAI(
-    model="google/gemini-2.0-flash-exp:free", # Primary target
-    openai_api_key=os.environ["OPENROUTER_API_KEY"],
-    openai_api_base="https://openrouter.ai/api/v1",
-    extra_body={
-        "models": [
-            "google/gemini-2.0-flash-exp:free",
-            "meta-llama/llama-3.1-8b-instruct:free",
-            "mistralai/mistral-7b-instruct:free"
-        ],
-        "route": "fallback"
-    }
-)
-
-# 3. Session State (Memory)
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-if "doc_context" not in st.session_state:
-    st.session_state.doc_context = ""
-
-# 4. Extraction Logic (PDF, DOCX, and OCR for Images)
-def get_file_content(uploaded_file):
-    text = ""
-    try:
-        if uploaded_file.type == "application/pdf":
-            with pdfplumber.open(uploaded_file) as pdf:
-                text = "\n".join([p.extract_text() for p in pdf.pages if p.extract_text()])
-        elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-            doc = Document(uploaded_file)
-            text = "\n".join([p.text for p in doc.paragraphs])
-        elif uploaded_file.type in ["image/png", "image/jpeg", "image/jpg"]:
-            img = Image.open(uploaded_file)
-            text = pytesseract.image_to_string(img)
-        return text
-    except Exception as e:
-        st.error(f"Error during extraction: {e}")
-        return ""
-
-# 5. Sidebar - Controls & Debug
+# --- 5. SIDEBAR: SETTINGS & UPLOADS ---
 with st.sidebar:
-    st.header("📂 Data Source")
-    uploaded_file = st.file_uploader("Upload Image/PDF/Word", type=["pdf", "docx", "png", "jpg", "jpeg"])
+    st.header("⚙️ Control Panel")
     
-    if uploaded_file and st.button("🔄 Process File"):
-        with st.spinner("Reading document..."):
-            extracted = get_file_content(uploaded_file)
-            if extracted:
-                st.session_state.doc_context = extracted
-                st.success("Context stored in memory!")
-            else:
-                st.warning("Could not find any text.")
+    # Toggle between your direct Groq key and the OpenRouter fallback
+    engine_choice = st.radio(
+        "Select AI Engine:",
+        ("Gemini (via OpenRouter)", "Groq (Direct Speed)"),
+        index=1
+    )
 
     st.divider()
-    if st.button("🗑️ Clear Memory"):
-        st.session_state.chat_history = []
-        st.session_state.doc_context = ""
+    st.header("📁 Document Upload")
+    uploaded_file = st.file_uploader("Upload Image, PDF, or Word", type=["pdf", "docx", "png", "jpg", "jpeg"])
+    
+    if st.button("Process Document ⚙️"):
+        if uploaded_file:
+            with st.spinner("Extracting content..."):
+                text = ""
+                if uploaded_file.type == "application/pdf":
+                    with pdfplumber.open(uploaded_file) as pdf:
+                        text = "\n".join([p.extract_text() for p in pdf.pages if p.extract_text()])
+                elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                    doc = Document(uploaded_file)
+                    text = "\n".join([para.text for para in doc.paragraphs])
+                elif "image" in uploaded_file.type:
+                    img = Image.open(uploaded_file)
+                    text = pytesseract.image_to_string(img)
+                
+                st.session_state.extracted_text = text
+                st.success("Analysis Complete!")
+        else:
+            st.warning("Please upload a file first.")
+
+    if st.button("Clear History 🧹"):
+        st.session_state.messages = []
+        st.session_state.extracted_text = ""
         st.rerun()
 
-    # Visual proof of what the AI is reading
-    if st.session_state.doc_context:
-        with st.expander("🔎 OCR/Text Output"):
-            st.text(st.session_state.doc_context)
+# --- 6. DYNAMIC ENGINE LOADING ---
+if engine_choice == "Groq (Direct Speed)":
+    # Using your direct Groq API Key
+    llm = ChatGroq(
+        model_name="llama-3.3-70b-versatile",
+        groq_api_key=st.secrets["GROQ_API_KEY"]
+    )
+else:
+    # Using OpenRouter (Gemini) with fallbacks
+    llm = ChatOpenAI(
+        model="google/gemini-2.0-flash-exp:free",
+        openai_api_key=os.environ["OPENROUTER_API_KEY"],
+        openai_api_base="https://openrouter.ai/api/v1"
+    )
 
-# 6. Chat Interaction
-# Display history
-for msg in st.session_state.chat_history:
-    st.chat_message(msg["role"]).write(msg["content"])
+# --- 7. LIVE CHAT INTERFACE ---
+# Display History
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-# Handle new input
-if prompt := st.chat_input("Ask about the warranty..."):
-    st.session_state.chat_history.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
-
-    # Provide context to the AI model
-    context = st.session_state.doc_context if st.session_state.doc_context else "No context uploaded."
-    messages = [
-        SystemMessage(content=f"You are a helpful assistant. Reference this text: {context}"),
-        HumanMessage(content=prompt)
-    ]
+# User Input
+if prompt := st.chat_input("Ask a question about your document..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Calling AI (using fallback if needed)..."):
-            try:
-                response = llm.invoke(messages)
-                st.write(response.content)
-                st.session_state.chat_history.append({"role": "assistant", "content": response.content})
-            except Exception as e:
-                # If all 3 models in the fallback fail or the global quota is hit
-                st.error(f"System Error: {e}")
+        # Combine context with user query
+        context_data = st.session_state.extracted_text if st.session_state.extracted_text else "No document data provided."
+        full_query = f"DOCUMENT DATA:\n{context_data}\n\nUSER QUESTION: {prompt}"
+        
+        try:
+            st.caption(f"🧠 Processor: {engine_choice}")
+            response = llm.invoke([HumanMessage(content=full_query)])
+            st.markdown(response.content)
+            st.session_state.messages.append({"role": "assistant", "content": response.content})
+        except Exception as e:
+            st.error(f"Engine Error: {str(e)}")

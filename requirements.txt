@@ -1,14 +1,9 @@
-# Web Interface
-streamlit>=1.53.1
-
-# AI & LLM Connectivity
-langchain>=1.2.7
-langchain-openai>=1.1.7
-
-# File Processing
-pdfplumber>=0.11.9
-python-docx>=1.2.0
-
-# Image & OCR Support
-Pillow>=12.1.0
-pytesseract>=0.3.13
+streamlit
+pytesseract
+pillow
+pdfplumber
+python-docx
+langchain
+langchain-community
+langchain-openai
+langchain-groq
