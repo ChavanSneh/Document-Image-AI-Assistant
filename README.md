@@ -30,16 +30,16 @@ OCR & Parsing: Tesseract OCR, PdfPlumber, Python-Docx
 
 ⚙️ Local Setup
 
-Clone the Repository
+📁 Clone the Repository
 
 git clone https://github.com/ChavanSneh/Document-Image-AI-Assistant.git
 cd Document-Image-AI-Assistant
 
-Install Dependencies
+⚙️Install Dependencies
 
 pip install -r requirements.txt
 
-Configure Secrets
+🔑Configure Secrets
 
 Create a .streamlit folder and add a secrets.toml file:
 
@@ -48,6 +48,6 @@ Toml
 OPENROUTER_API_KEY = "your_openrouter_key"
 GROQ_API_KEY = "your_groq_key"
 
-Run the App
+🚀 Run the App
 
 streamlit run streamlit_app.py 
