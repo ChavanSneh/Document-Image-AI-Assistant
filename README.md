@@ -1,3 +1,5 @@
+This project was built earlier as a real-world experiment. For this challenge, I’m submitting an existing, fully working solution instead of rebuilding from scratch.
+
 # 🛡️ Resilient Hybrid AI Assistant (2026 Edition)
 
 An advanced Document AI Assistant that allows users to chat with PDFs, Word Documents, and Images using the fastest AI models available today.
