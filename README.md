@@ -1,32 +1,45 @@
-This project was built earlier as a real-world experiment. For this challenge, I’m submitting an existing, fully working solution instead of rebuilding from scratch.
 
-# 🛡️ Resilient Hybrid AI Assistant (2026 Edition)
+🛡️ Resilient Hybrid AI Assistant (2026 Edition)
+This project was originally built as a real-world experiment.
+For this challenge, I’m submitting an existing, fully working solution rather than rebuilding from scratch.
+The goal was to design a fast, resilient, and practical Document AI system, not a toy demo.
+🔍 Overview
+An advanced Document AI Assistant that enables users to chat with PDFs, Word documents, and images, leveraging modern LLMs and OCR pipelines.
+The system is designed to balance reasoning depth, response speed, and reliability by dynamically switching between AI engines.
+🚀 Key Features
+Dual-Engine AI Switching
+Switch between Google Gemini 2.0 (via OpenRouter) for deep reasoning and Groq (Llama 3.3) for ultra-fast responses.
+Multi-Format Document Support
+Extracts and processes text from:
+PDFs
+.docx files
+Images (PNG, JPG) using OCR
+Hybrid Security Design
+API keys are protected using Streamlit Secrets and .gitignore safety practices.
+Interactive Chat Interface
+Live conversational UI with session memory and Clear Memory controls.
+🛠️ Tech Stack
+Frontend: Streamlit
+AI Orchestration: LangChain
+Models: Gemini 2.0 Flash, Llama 3.3 (70B)
+Inference Providers: OpenRouter, Groq Cloud
+OCR & Parsing: Tesseract OCR, PdfPlumber, Python-Docx
 
-An advanced Document AI Assistant that allows users to chat with PDFs, Word Documents, and Images using the fastest AI models available today.
+⚙️ Local Setup
+Clone the Repository
 
-## 🚀 Key Features
-- **Dual-Engine Switching:** Toggle between **Google Gemini 2.0** (via OpenRouter) for deep reasoning and **Groq (Llama 3.3)** for lightning-fast responses.
-- **Multi-Format OCR:** Extract text from PDFs, `.docx` files, and images (PNG/JPG) using `pytesseract` and `pdfplumber`.
-- **Hybrid Security:** Built-in protection for API keys using Streamlit Secrets and `.gitignore` safety protocols.
-- **Smart History:** Interactive live chat interface with "Clear Memory" functionality.
+git clone https://github.com/ChavanSneh/Document-Image-AI-Assistant.git
+cd Document-Image-AI-Assistant
+Install Dependencies
 
-## 🛠️ Tech Stack
-- **Frontend:** Streamlit
-- **AI Orchestration:** LangChain
-- **Models:** Gemini 2.0 Flash, Llama 3.3 (70B)
-- **Engines:** OpenRouter & Groq Cloud
-- **OCR & Parsing:** Tesseract OCR, Pdfplumber, Python-Docx
+pip install -r requirements.txt
+Configure Secrets
+Create a .streamlit folder and add a secrets.toml file:
+Toml
 
-## ⚙️ Local Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/ChavanSneh/Document-Image-AI-Assistant.git](https://github.com/ChavanSneh/Document-Image-AI-Assistant.git)
-   cd Document-Image-AI-Assistant
-2. **Install Depencencies:**
-   pip install -r requirements.txt
-3. **Configure Secrets:**
-   Create a folder named .streamlit and a file named secrets .toml inside it: OPENROUTER_API_KEY = "your_openrouter_key"
-   GROQ_API_KEY = "your_groq_key"
-4. **Run the App:**
-   streamlit run streamlit_app.py
+OPENROUTER_API_KEY = "your_openrouter_key"
+GROQ_API_KEY = "your_groq_key"
+Run the App
+Bash
+Copy code
+streamlit run streamlit_app.py 
