@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Python
 __pycache__/
 *.py[cod]
@@ -15,3 +16,6 @@ Thumbs.db
 # App specific
 backend/storage/  # If you are saving files locally
 .env
+=======
+.streamlit/
+>>>>>>> ec491f8a02c1ca81ff6d58d48ff9a7dbf2517edd
