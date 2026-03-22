@@ -1,9 +1,0 @@
-streamlit
-pytesseract
-pillow
-pdfplumber
-python-docx
-langchain
-langchain-community
-langchain-openai
-langchain-groq
